@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3-Tier App</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+    li { background: #f4f4f4; margin: 8px 0; padding: 12px; border-radius: 6px; }
+    .error { color: #c0392b; }
+  </style>
+</head>
+<body>
+  <h1>Items from the Database</h1>
+  <ul id="list"></ul>
+  <p id="status"></p>
+
+  <script>
+    fetch("/api/items")
+      .then(r => r.json())
+      .then(items => {
+        document.getElementById("list").innerHTML =
+          items.map(i => `<li><strong>${i.name}</strong> — ${i.description}</li>`).join("");
+      })
+      .catch(() => {
+        document.getElementById("status").innerHTML =
+          '<span class="error">Could not reach the backend API.</span>';
+      });
+  </script>
+</body>
+</html>
