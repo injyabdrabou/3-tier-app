@@ -6,25 +6,62 @@
   <style>
     body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
     li { background: #f4f4f4; margin: 8px 0; padding: 12px; border-radius: 6px; }
+    form { background: #eef3f7; padding: 16px; border-radius: 6px; margin-bottom: 20px; }
+    input { padding: 8px; margin-right: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 8px 16px; border: none; border-radius: 4px; background: #2c7be5; color: white; cursor: pointer; }
+    button:hover { background: #1a5fc4; }
     .error { color: #c0392b; }
   </style>
 </head>
 <body>
   <h1>Items from the Database</h1>
+
+  <form id="add-form">
+    <input type="text" id="name" placeholder="Item name" required>
+    <input type="text" id="description" placeholder="Description">
+    <button type="submit">Add Item</button>
+  </form>
+
   <ul id="list"></ul>
   <p id="status"></p>
 
   <script>
-    fetch("/api/items")
-      .then(r => r.json())
-      .then(items => {
-        document.getElementById("list").innerHTML =
-          items.map(i => `<li><strong>${i.name}</strong> — ${i.description}</li>`).join("");
+    function loadItems() {
+      fetch("/api/items")
+        .then(r => r.json())
+        .then(items => {
+          document.getElementById("list").innerHTML =
+            items.map(i => `<li><strong>${i.name}</strong> — ${i.description}</li>`).join("");
+        })
+        .catch(() => {
+          document.getElementById("status").innerHTML =
+            '<span class="error">Could not reach the backend API.</span>';
+        });
+    }
+
+    document.getElementById("add-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const description = document.getElementById("description").value;
+
+      fetch("/api/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description })
       })
-      .catch(() => {
-        document.getElementById("status").innerHTML =
-          '<span class="error">Could not reach the backend API.</span>';
-      });
+        .then(r => {
+          if (!r.ok) throw new Error("Request failed");
+          document.getElementById("name").value = "";
+          document.getElementById("description").value = "";
+          loadItems();
+        })
+        .catch(() => {
+          document.getElementById("status").innerHTML =
+            '<span class="error">Failed to add item.</span>';
+        });
+    });
+
+    loadItems();
   </script>
 </body>
 </html>

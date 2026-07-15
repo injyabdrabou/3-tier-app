@@ -1,7 +1,7 @@
 import os
 import time
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import mysql.connector
 
 app = Flask(__name__)
@@ -31,8 +31,8 @@ def health():
     return jsonify({"status": "ok"})
 
 
-@app.route("/items")
-def items():
+@app.route("/items", methods=["GET"])
+def get_items():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM items;")
@@ -40,6 +40,30 @@ def items():
     cursor.close()
     conn.close()
     return jsonify(rows)
+
+
+@app.route("/items", methods=["POST"])
+def add_item():
+    data = request.get_json()
+    if not data or not data.get("name"):
+        return jsonify({"error": "name is required"}), 400
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO items (name, description) VALUES (%s, %s)",
+        (data["name"], data.get("description", "")),
+    )
+    conn.commit()
+    new_id = cursor.lastrowid
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "id": new_id,
+        "name": data["name"],
+        "description": data.get("description", ""),
+    }), 201
 
 
 if __name__ == "__main__":
