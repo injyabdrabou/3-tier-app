@@ -1,0 +1,14 @@
+# Secrets — never commit
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# Node (in case frontend grows)
+node_modules/
+
+# Logs & local junk
+*.log
+.DS_Store
